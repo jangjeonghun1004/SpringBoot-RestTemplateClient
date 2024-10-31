@@ -1,13 +1,21 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.MemberDTO;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+
 
 @Service
 public class RestTemplateService {
@@ -94,6 +102,31 @@ public class RestTemplateService {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<MemberDTO> responseEntity = restTemplate.exchange(requestEntity, MemberDTO.class);
         return responseEntity;
+    }
+
+    public RestTemplate restTemplate() {
+        // 타임아웃 설정
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofDays(2000)) // 연결 타임아웃 (2초)
+                .setResponseTimeout(Timeout.ofDays(5000)) // 응답 타임아웃 (5초)
+                .build();
+
+        // 커넥션 매니저 설정
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setMaxConnTotal(500)
+                .setMaxConnPerRoute(500)
+                .build();
+
+        // HttpClient 설정
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
+        // HttpComponentsClientHttpRequestFactory 생성
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+
+        return new RestTemplate(factory);
     }
 
 }
