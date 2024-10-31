@@ -59,5 +59,10 @@
 
         return new RestTemplate(factory);
     }
+
+# RestTemplate-Server
+
+    "demo-RestTemplateServer.zip" 참조
+    
     
     
